@@ -35,6 +35,18 @@ app.get("/health", (req, res) => {
   res.json({ status: "OK" });
 });
 
+app.get("/debug/rooms", (req, res) => {
+  res.json({
+    totalRooms: Object.keys(rooms).length,
+    rooms: Object.keys(rooms).map(roomId => ({
+      roomId,
+      players: rooms[roomId].players.length,
+      currentRound: rooms[roomId].currentRound,
+      totalRounds: rooms[roomId].totalRounds
+    }))
+  });
+});
+
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -46,8 +58,11 @@ const io = new Server(server, {
         callback(new Error('Not allowed by CORS'));
       }
     },
-    credentials: true
+    credentials: true,
+    methods: ["GET", "POST"]
   },
+  transports: ['websocket', 'polling'],
+  allowEIO3: true
 });
 
 let rooms = {};
@@ -68,8 +83,11 @@ function shuffle(array) {
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
+  console.log("Current rooms:", Object.keys(rooms));
 
   socket.on("createRoom", ({ roomId, username, totalRounds }) => {
+    console.log(`Creating room ${roomId} by ${username}`);
+    
     rooms[roomId] = {
       players: [],
       operatorId: socket.id,
@@ -88,16 +106,21 @@ io.on("connection", (socket) => {
 
     socket.join(roomId);
     io.to(roomId).emit("roomUpdate", rooms[roomId]);
-    console.log(`Room ${roomId} created by ${username}`);
+    console.log(`Room ${roomId} created. Total rooms: ${Object.keys(rooms).length}`);
   });
 
   socket.on("joinRoom", ({ roomId, username }) => {
+    console.log(`${username} trying to join room ${roomId}`);
+    console.log(`Available rooms:`, Object.keys(rooms));
+    
     if (!rooms[roomId]) {
+      console.log(`Room ${roomId} not found`);
       socket.emit("error", "Room not found");
       return;
     }
 
     if (rooms[roomId].players.length >= 5) {
+      console.log(`Room ${roomId} is full`);
       socket.emit("error", "Room is full");
       return;
     }
@@ -112,7 +135,7 @@ io.on("connection", (socket) => {
 
     socket.join(roomId);
     io.to(roomId).emit("roomUpdate", rooms[roomId]);
-    console.log(`${username} joined room ${roomId}`);
+    console.log(`${username} joined room ${roomId}. Players: ${rooms[roomId].players.length}`);
   });
 
   socket.on("playerReady", ({ roomId }) => {
