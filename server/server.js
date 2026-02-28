@@ -9,6 +9,19 @@ app.use(cors({
   credentials: true
 }));
 
+// Health check route
+app.get("/", (req, res) => {
+  res.json({
+    status: "Server is running",
+    message: "Chor Police Game Backend",
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get("/health", (req, res) => {
+  res.json({ status: "OK" });
+});
+
 const server = http.createServer(app);
 
 const io = new Server(server, {
