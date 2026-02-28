@@ -26,3 +26,11 @@ yarn-error.log*
 .idea/
 *.swp
 *.swo
+
+# Vercel
+.vercel
+.vercel.json
+
+# OS
+.DS_Store
+Thumbs.db
