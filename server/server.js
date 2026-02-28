@@ -205,6 +205,19 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("sendEmoji", ({ roomId, emoji, username }) => {
+    const room = rooms[roomId];
+    if (!room) return;
+
+    io.to(roomId).emit("emojiReceived", {
+      playerId: socket.id,
+      username,
+      emoji,
+      timestamp: Date.now()
+    });
+    console.log(`${username} sent emoji ${emoji} in room ${roomId}`);
+  });
+
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
     

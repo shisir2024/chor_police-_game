@@ -17,6 +17,7 @@ function App() {
   const [currentRound, setCurrentRound] = useState(0);
   const [maxRounds, setMaxRounds] = useState(10);
   const [myReady, setMyReady] = useState(false);
+  const [emojiReactions, setEmojiReactions] = useState([]);
 
   useEffect(() => {
     socket.on("roomUpdate", (room) => {
@@ -54,11 +55,19 @@ function App() {
       alert(msg);
     });
 
+    socket.on("emojiReceived", (data) => {
+      setEmojiReactions(prev => [...prev, data]);
+      setTimeout(() => {
+        setEmojiReactions(prev => prev.filter(e => e.timestamp !== data.timestamp));
+      }, 3000);
+    });
+
     return () => {
       socket.off("roomUpdate");
       socket.off("roundStarted");
       socket.off("roundResult");
       socket.off("error");
+      socket.off("emojiReceived");
     };
   }, []);
 
@@ -90,6 +99,11 @@ function App() {
 
   const guessPlayer = (id) => {
     socket.emit("policeGuess", { roomId, guessedId: id });
+  };
+
+  const sendEmoji = (emoji) => {
+    const player = players.find(p => p.id === socket.id);
+    socket.emit("sendEmoji", { roomId, emoji, username: player?.username || username });
   };
 
   const resetRound = () => {
@@ -207,6 +221,32 @@ function App() {
         </div>
       ) : (
         <div className="paper-card w-full max-w-2xl">
+          {/* Emoji Reactions Display */}
+          <div className="fixed top-20 right-4 z-50">
+            {emojiReactions.map((reaction, idx) => (
+              <div key={reaction.timestamp} className="mb-2 animate-bounce">
+                <div className="bg-white border-2 border-amber-300 rounded-lg p-2 shadow-lg">
+                  <span className="text-3xl">{reaction.emoji}</span>
+                  <span className="text-xs ml-2">{reaction.username}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Emoji Reaction Bar */}
+          <div className="mb-4 p-3 bg-amber-50 border-2 border-amber-200 rounded">
+            <p className="text-sm font-bold mb-2 text-center">React:</p>
+            <div className="flex justify-center gap-2 flex-wrap">
+              <button onClick={() => sendEmoji("😊")} className="text-2xl hover:scale-125 transition">😊</button>
+              <button onClick={() => sendEmoji("😢")} className="text-2xl hover:scale-125 transition">😢</button>
+              <button onClick={() => sendEmoji("😠")} className="text-2xl hover:scale-125 transition">😠</button>
+              <button onClick={() => sendEmoji("😭")} className="text-2xl hover:scale-125 transition">😭</button>
+              <button onClick={() => sendEmoji("😰")} className="text-2xl hover:scale-125 transition">😰</button>
+              <button onClick={() => sendEmoji("🤩")} className="text-2xl hover:scale-125 transition">🤩</button>
+              <button onClick={() => sendEmoji("🙏")} className="text-2xl hover:scale-125 transition">🙏</button>
+            </div>
+          </div>
+
           <div className="text-center mb-6">
             <p className="text-lg mb-2">Round {currentRound} of {maxRounds}</p>
             <h2 className="text-3xl font-bold mb-2">
