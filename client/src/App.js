@@ -110,33 +110,69 @@ function App() {
 
   const playEmojiSound = (emoji) => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
+    const now = audioContext.currentTime;
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    // Different frequencies for different emojis
-    const soundMap = {
-      '😊': { freq: 523.25, duration: 0.2 }, // Happy - C5
-      '😢': { freq: 293.66, duration: 0.4 }, // Sad - D4
-      '😠': { freq: 220.00, duration: 0.3 }, // Angry - A3
-      '😭': { freq: 261.63, duration: 0.5 }, // Cry - C4
-      '😰': { freq: 349.23, duration: 0.25 }, // Nervous - F4
-      '🤩': { freq: 659.25, duration: 0.2 }, // Excited - E5
-      '🙏': { freq: 440.00, duration: 0.3 }  // Namaste - A4
+    const createTone = (freq, startTime, duration, type = 'sine') => {
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+      osc.frequency.setValueAtTime(freq, startTime);
+      osc.type = type;
+      gain.gain.setValueAtTime(0.3, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+      osc.start(startTime);
+      osc.stop(startTime + duration);
     };
 
-    const sound = soundMap[emoji] || { freq: 440, duration: 0.2 };
-    
-    oscillator.frequency.setValueAtTime(sound.freq, audioContext.currentTime);
-    oscillator.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + sound.duration);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + sound.duration);
+    // Realistic emotion sounds
+    switch(emoji) {
+      case '😊': // Happy - ascending cheerful notes
+        createTone(523, now, 0.1);
+        createTone(659, now + 0.1, 0.1);
+        createTone(784, now + 0.2, 0.15);
+        break;
+      
+      case '😢': // Sad - descending slow notes
+        createTone(392, now, 0.3, 'triangle');
+        createTone(349, now + 0.3, 0.4, 'triangle');
+        break;
+      
+      case '😠': // Angry - harsh low buzzing
+        createTone(110, now, 0.15, 'sawtooth');
+        createTone(116, now + 0.15, 0.15, 'sawtooth');
+        createTone(110, now + 0.3, 0.2, 'sawtooth');
+        break;
+      
+      case '😭': // Cry - wavering descending tones
+        createTone(440, now, 0.2, 'sine');
+        createTone(392, now + 0.2, 0.2, 'sine');
+        createTone(349, now + 0.4, 0.3, 'sine');
+        createTone(330, now + 0.7, 0.3, 'sine');
+        break;
+      
+      case '😰': // Nervous - rapid alternating notes
+        for(let i = 0; i < 6; i++) {
+          createTone(i % 2 === 0 ? 440 : 494, now + (i * 0.08), 0.08);
+        }
+        break;
+      
+      case '🤩': // Excited - fast ascending sparkly notes
+        createTone(523, now, 0.08);
+        createTone(659, now + 0.08, 0.08);
+        createTone(784, now + 0.16, 0.08);
+        createTone(1047, now + 0.24, 0.12);
+        break;
+      
+      case '🙏': // Namaste - peaceful bell-like tones
+        createTone(528, now, 0.4, 'sine');
+        createTone(396, now + 0.1, 0.5, 'sine');
+        createTone(264, now + 0.2, 0.6, 'sine');
+        break;
+      
+      default:
+        createTone(440, now, 0.2);
+    }
   };
 
   const resetRound = () => {
