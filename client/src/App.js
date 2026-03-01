@@ -57,6 +57,7 @@ function App() {
 
     socket.on("emojiReceived", (data) => {
       setEmojiReactions(prev => [...prev, data]);
+      playEmojiSound(data.emoji);
       setTimeout(() => {
         setEmojiReactions(prev => prev.filter(e => e.timestamp !== data.timestamp));
       }, 3000);
@@ -104,6 +105,38 @@ function App() {
   const sendEmoji = (emoji) => {
     const player = players.find(p => p.id === socket.id);
     socket.emit("sendEmoji", { roomId, emoji, username: player?.username || username });
+    playEmojiSound(emoji);
+  };
+
+  const playEmojiSound = (emoji) => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // Different frequencies for different emojis
+    const soundMap = {
+      '😊': { freq: 523.25, duration: 0.2 }, // Happy - C5
+      '😢': { freq: 293.66, duration: 0.4 }, // Sad - D4
+      '😠': { freq: 220.00, duration: 0.3 }, // Angry - A3
+      '😭': { freq: 261.63, duration: 0.5 }, // Cry - C4
+      '😰': { freq: 349.23, duration: 0.25 }, // Nervous - F4
+      '🤩': { freq: 659.25, duration: 0.2 }, // Excited - E5
+      '🙏': { freq: 440.00, duration: 0.3 }  // Namaste - A4
+    };
+
+    const sound = soundMap[emoji] || { freq: 440, duration: 0.2 };
+    
+    oscillator.frequency.setValueAtTime(sound.freq, audioContext.currentTime);
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + sound.duration);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + sound.duration);
   };
 
   const resetRound = () => {
