@@ -177,6 +177,18 @@ function App() {
         </div>
       ) : !gameStarted ? (
         <div className="paper-card w-full max-w-md">
+          {/* Emoji Reactions Display */}
+          <div className="fixed top-20 right-4 z-50">
+            {emojiReactions.map((reaction) => (
+              <div key={reaction.timestamp} className="mb-2 animate-bounce">
+                <div className="bg-white border-2 border-amber-300 rounded-lg p-2 shadow-lg">
+                  <span className="text-3xl">{reaction.emoji}</span>
+                  <span className="text-xs ml-2">{reaction.username}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
           <h2 className="text-2xl mb-4 font-bold text-center">Room: {roomId}</h2>
           {isOperator && <p className="text-center text-green-600 font-bold mb-2">👑 You are the Operator</p>}
           <p className="text-center mb-4">Total Rounds: {maxRounds}</p>
@@ -193,6 +205,20 @@ function App() {
 
           {players.length === 5 ? (
             <>
+              {/* Emoji Reaction Bar in Waiting Room */}
+              <div className="mb-4 p-3 bg-amber-50 border-2 border-amber-200 rounded">
+                <p className="text-sm font-bold mb-2 text-center">React:</p>
+                <div className="flex justify-center gap-2 flex-wrap">
+                  <button onClick={() => sendEmoji("😊")} className="text-2xl hover:scale-125 transition cursor-pointer">😊</button>
+                  <button onClick={() => sendEmoji("😢")} className="text-2xl hover:scale-125 transition cursor-pointer">😢</button>
+                  <button onClick={() => sendEmoji("😠")} className="text-2xl hover:scale-125 transition cursor-pointer">😠</button>
+                  <button onClick={() => sendEmoji("😭")} className="text-2xl hover:scale-125 transition cursor-pointer">😭</button>
+                  <button onClick={() => sendEmoji("😰")} className="text-2xl hover:scale-125 transition cursor-pointer">😰</button>
+                  <button onClick={() => sendEmoji("🤩")} className="text-2xl hover:scale-125 transition cursor-pointer">🤩</button>
+                  <button onClick={() => sendEmoji("🙏")} className="text-2xl hover:scale-125 transition cursor-pointer">🙏</button>
+                </div>
+              </div>
+
               {!isOperator && !myReady && (
                 <button className="btn w-full text-lg mb-2" onClick={markReady}>
                   ✓ I'm Ready
@@ -237,13 +263,13 @@ function App() {
           <div className="mb-4 p-3 bg-amber-50 border-2 border-amber-200 rounded">
             <p className="text-sm font-bold mb-2 text-center">React:</p>
             <div className="flex justify-center gap-2 flex-wrap">
-              <button onClick={() => sendEmoji("😊")} className="text-2xl hover:scale-125 transition">😊</button>
-              <button onClick={() => sendEmoji("😢")} className="text-2xl hover:scale-125 transition">😢</button>
-              <button onClick={() => sendEmoji("😠")} className="text-2xl hover:scale-125 transition">😠</button>
-              <button onClick={() => sendEmoji("😭")} className="text-2xl hover:scale-125 transition">😭</button>
-              <button onClick={() => sendEmoji("😰")} className="text-2xl hover:scale-125 transition">😰</button>
-              <button onClick={() => sendEmoji("🤩")} className="text-2xl hover:scale-125 transition">🤩</button>
-              <button onClick={() => sendEmoji("🙏")} className="text-2xl hover:scale-125 transition">🙏</button>
+              <button onClick={() => sendEmoji("😊")} className="text-2xl hover:scale-125 transition cursor-pointer">😊</button>
+              <button onClick={() => sendEmoji("😢")} className="text-2xl hover:scale-125 transition cursor-pointer">😢</button>
+              <button onClick={() => sendEmoji("😠")} className="text-2xl hover:scale-125 transition cursor-pointer">😠</button>
+              <button onClick={() => sendEmoji("😭")} className="text-2xl hover:scale-125 transition cursor-pointer">😭</button>
+              <button onClick={() => sendEmoji("😰")} className="text-2xl hover:scale-125 transition cursor-pointer">😰</button>
+              <button onClick={() => sendEmoji("🤩")} className="text-2xl hover:scale-125 transition cursor-pointer">🤩</button>
+              <button onClick={() => sendEmoji("🙏")} className="text-2xl hover:scale-125 transition cursor-pointer">🙏</button>
             </div>
           </div>
 
